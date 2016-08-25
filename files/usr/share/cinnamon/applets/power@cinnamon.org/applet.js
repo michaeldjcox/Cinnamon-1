@@ -127,6 +127,10 @@ DeviceItem.prototype = {
             global.logError(alias);
         }
 
+        if (device_id == "/org/cinnamon/SettingsDaemon") {
+           description="All batteries";
+        }
+
         this.label = new St.Label({ text: "%s %d%%".format(description, Math.round(percentage)) });
         let statusLabel = new St.Label({ text: "%s".format(status), style_class: 'popup-inactive-menu-item' });
 
@@ -429,6 +433,9 @@ MyApplet.prototype = {
         if (!this._proxy)
             return;
 
+            this._deviceItems.forEach(function(i) { i.destroy(); });
+            this._deviceItems = [];
+
         // Identify the primary battery device
         this._proxy.GetPrimaryDeviceRemote(Lang.bind(this, function(device, error) {
             if (error) {
@@ -441,18 +448,23 @@ MyApplet.prototype = {
                 }
                 let [device_id, vendor, model, device_type, icon, percentage, state, seconds] = device
                 this._primaryDeviceId = device_id;
+                this._primaryDevice = device;
+
+                let status = this._getDeviceStatus(device);
+                let item = new DeviceItem (device, status, this.aliases);
+                this.menu.addMenuItem(item, 0);
+                this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem(), 1);
+                this._deviceItems.push(item);
             }
         }));
 
         // Scan battery devices
         this._proxy.GetDevicesRemote(Lang.bind(this, function(result, error) {
-            this._deviceItems.forEach(function(i) { i.destroy(); });
-            this._deviceItems = [];
             let devices_stats = [];
 
             if (!error) {
                 let devices = result[0];
-                let position = 0;
+                let position = 2;
                 for (let i = 0; i < devices.length; i++) {
                     let [device_id, vendor, model, device_type, icon, percentage, state, seconds] = devices[i];
 
