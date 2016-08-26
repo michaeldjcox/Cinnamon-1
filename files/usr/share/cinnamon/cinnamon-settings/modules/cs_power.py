@@ -1,11 +1,10 @@
 #!/usr/bin/env python2
 
+from SettingsWidgets import *
 import gi
 gi.require_version('CinnamonDesktop', '3.0')
 gi.require_version('UPowerGlib', '1.0')
 from gi.repository import CinnamonDesktop, Gdk, UPowerGlib
-
-from GSettingsWidgets import *
 
 POWER_BUTTON_OPTIONS = [
     ("blank", _("Lock the screen")),
@@ -263,6 +262,8 @@ class Module:
         # UPowerGlib segfaults when trying to get device. Use CSD instead
         devices = self.csd_power_proxy.GetDevices()
 
+        primaryBatteryDevice = self.csd_power_proxy.GetPrimaryDevice()
+
         have_primary = False
         ups_as_primary = False
 
@@ -288,11 +289,14 @@ class Module:
                 if not have_primary:
                     if not primary_settings:
                         primary_settings = self.battery_page.add_section(_("Batteries"))
+                        primary_settings.add_row(self.set_device_battery_primary(primaryBatteryDevice))
+                        primary_settings.add_row(Gtk.Separator.new(Gtk.Orientation.HORIZONTAL))
+                        primary_settings.add_row(Gtk.Separator.new(Gtk.Orientation.HORIZONTAL))
                         primary_settings.add_row(self.set_device_battery_primary(device))
                         self.show_battery_page = True
                     have_primary = True
                 else:
-                    widget = self.set_device_battery_additional(device)
+                    widget = self.set_device_battery_primary(device)
                     if widget:
                         primary_settings.add_row(widget)
             else:
