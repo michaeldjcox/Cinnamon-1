@@ -127,10 +127,6 @@ DeviceItem.prototype = {
             global.logError(alias);
         }
 
-        if (device_id == "/org/cinnamon/SettingsDaemon") {
-           description="All batteries";
-        }
-
         this.label = new St.Label({ text: "%s %d%%".format(description, Math.round(percentage)) });
         let statusLabel = new St.Label({ text: "%s".format(status), style_class: 'popup-inactive-menu-item' });
 
